@@ -115,9 +115,11 @@ the README must remain reproducible without an STK licence** — STK confirms, n
 a dropped secular term in CW, and an off-by-one in the constraint sampler; confirm the suite
 catches each. A gate that cannot fail is not a gate.
 
-**X2 · Derive the `6π·ρ²/r` law analytically.** Currently measured, not derived. Likely route:
-secular along-track drift of the semi-major-axis difference induced by the initial offset.
-*Accept:* derivation reproduces the coefficient `6π`, or the discrepancy is explained.
+**X2 · Derive the `6π·ρ²/r` law analytically. — CLOSED.** Derived: a chaser at a pure
+along-track Hill offset at rest is not co-orbital; position and rigid co-rotation each add
+`n²ρ²/2` to specific energy, giving `Δa = 2ρ²/r`, and the classical `−3π·Δa` drift per
+revolution yields `−6π·ρ²/r` exactly. Verified numerically to six significant figures. See
+`docs/cw_validity.md`.
 
 **X3 · Eccentricity error study.** The CW validity study isolates linearisation error using a
 circular target. Quantify the separate error from reference-orbit eccentricity.

@@ -36,9 +36,40 @@ err_1_orbit  =  6π · ρ² / r
 to six significant figures, verified across 400 / 800 / 1500 km altitudes and 1 km / 10 km
 separations. The coefficient lands on exactly `6π = 18.8496`.
 
-The law is **measured, not derived.** An analytic derivation from the secular along-track
-drift of the induced semi-major-axis difference looks tractable and is worth doing; it is
-not claimed here.
+The law was first **measured**, then **derived**. The derivation is below.
+### Derivation (closes backlog item X2 — the law is no longer empirical)
+
+The law follows from two classical results once you notice that **a chaser at a pure
+along-track Hill offset, at rest in the Hill frame, is not co-orbital.**
+
+Take the chaser at `ρ_hill = (0, −ρ, 0)` with zero Hill-frame relative velocity. Two things
+follow, and both contribute equally:
+
+1. *Position.* It sits off the reference circle, so `|r_c| = √(r² + ρ²) ≈ r + ρ²/2r`.
+2. *Velocity.* "At rest in a rotating frame" means rigid co-rotation, which adds an inertial
+   radial component `ω × δr = n·ρ` in the radial direction.
+
+Specific energy relative to the target, with `n² = μ/r³`:
+
+    Δε = (nρ)²/2  +  μ·(ρ²/2r)/r²  =  n²ρ²/2 + n²ρ²/2  =  n²ρ²
+
+and since `ε = −μ/2a`, `Δε = μ·Δa/2a²`, so
+
+    Δa = 2a²Δε/μ = 2ρ²/r
+
+The classical secular along-track drift for a semi-major-axis difference is `Δy = −3π·Δa`
+per revolution. Substituting:
+
+    Δy per revolution = −3π · (2ρ²/r) = −6π·ρ²/r        ∎
+
+CW reports this chaser as stationary; the truth drifts by exactly that amount, and the
+difference *is* the linearisation error. The coefficient `6π` is therefore structural, not
+fitted — which is why it reproduced to six significant figures across three altitudes.
+
+Verified numerically: `Δa` measured 0.2942 / 7.3550 / 29.4199 m at ρ = 1 / 5 / 10 km against
+`2ρ²/r` = 0.2942 / 7.3550 / 29.4198 m, and `3π·Δa` = 2.773 / 69.319 / 277.276 m against
+`6πρ²/r` = 2.773 / 69.319 / 277.275 m.
+
 
 | Separation ρ | 0.25 orbit | 0.5 orbit | 1 orbit | 2 orbits |
 |---:|---:|---:|---:|---:|

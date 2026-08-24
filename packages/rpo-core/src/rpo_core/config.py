@@ -139,8 +139,11 @@ PERIOD_MULTIPLE_REL_TOL: float = 1.0e-6
 
 #: Fraction of the keep-out-sphere radius allowed as CW linearisation error before warning.
 #:
-#: ``docs/cw_validity.md`` works its error budget at 1 % of the 200 m keep-out sphere,
-#: i.e. 2 m, and reports the MVP V-bar hop landing at roughly 1.5 m. The budget therefore
+#: ``docs/cw_validity.md`` works its error budget at 2.5 % of the 200 m keep-out sphere,
+#: i.e. 5 m. The MVP V-bar hop measures 1.455 m of linearisation error with a conservative
+#: bound of 2.08 m, so it sits at 42 % of budget. An earlier 1 % / 2 m budget was rejected:
+#: the conservative bound exceeded it and the flagship scenario warned about itself, while
+#: its measured error was well inside. The budget therefore
 #: sits deliberately close to the baseline: it is meant to fire on the next scenario out,
 #: not to be comfortably slack.
 CW_ERROR_BUDGET_FRACTION_OF_KOZ: float = 0.025
@@ -645,6 +648,7 @@ def create_run_directory(
     config: ScenarioConfig,
     seed: int | None = None,
     base_dir: str | Path = DEFAULT_RUNS_DIR,
+    variant: str | None = None,
 ) -> Path:
     """Create ``<base_dir>/<config_hash>-<seed>/`` and write ``provenance.json`` into it.
 
@@ -656,12 +660,22 @@ def create_run_directory(
     The timestamp is recorded in the provenance and deliberately excluded from the hash. A
     timestamped hash would make every run unique, which is the opposite of reproducible.
 
+    ``variant`` distinguishes runs that share a scenario but differ in a *run option* rather
+    than in the scenario itself. Without it, planning the same scenario with and without
+    nonlinear correction resolves to one directory and the second run silently overwrites the
+    first -- two different results, one path, no warning. Any option that changes the numbers
+    must appear here.
+
     Parameters
     ----------
     config
         The validated scenario. Serialised in full into the provenance record.
     seed
         Random seed for this run. Defaults to ``config.seed``. Must be non-negative.
+    variant
+        Optional discriminator appended to the directory name, for runs that share a
+        scenario but differ in a run option that changes the numbers (for example planning
+        with and without nonlinear correction). Omit for the canonical run.
     base_dir
         Parent directory. Created if missing. Relative paths resolve against the current
         working directory.
@@ -682,7 +696,8 @@ def create_run_directory(
         raise ScenarioConfigError(f"seed must be non-negative, got {effective_seed!r}")
 
     digest = config_hash(config)
-    run_dir = Path(base_dir) / f"{digest}-{effective_seed}"
+    suffix = f"-{variant}" if variant else ""
+    run_dir = Path(base_dir) / f"{digest}-{effective_seed}{suffix}"
 
     commit, dirty = _git_provenance(Path(__file__).resolve().parent)
     provenance: dict[str, Any] = {

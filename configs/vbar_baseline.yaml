@@ -53,13 +53,17 @@ constraints:
 
   approach_cone_half_angle_deg: 10.0
   # Enforced across the whole hop. At 1000 m a 10 deg half-angle allows ~176 m of lateral
-  # excursion and at 250 m about 44 m, against the ~40 m radial bulge a half-period hop of
-  # this size actually makes -- tight, but not violated. Worth re-checking against the
-  # propagated trajectory rather than trusting this note.
+  # excursion, at 250 m about 44 m.
+  #
+  # An earlier revision of this comment estimated the hop's radial bulge at "~40 m -- tight,
+  # but not violated", and ended "worth re-checking against the propagated trajectory rather
+  # than trusting this note". It was re-checked. The note was wrong by 4.7x. The estimate is
+  # gone; the measured numbers are below.
   # KNOWN AND INTENTIONAL: the baseline manoeuvre VIOLATES this corridor, and shipping it
   # that way is the point. A half-period two-impulse V-bar hop bulges radially by exactly
   # dy/4 (docs/project1/math-model.md, model M4 corollary) - here 187.5 m, reaching
-  # 20.56 deg off the V-bar, 151 of 241 samples outside a 10 deg corridor.
+  # 20.56 deg off the V-bar. Measured violating samples: 151 of 241, and 1252 of 2001
+  # at the planner's default sampling -- 62.6% of the arc either way.
   #
   # That is a hard geometric consequence of the transfer, not a tuning error, so it is not
   # papered over by widening the cone or activating it closer in. The MVP's job is to REPORT

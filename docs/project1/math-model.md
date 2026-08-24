@@ -133,7 +133,9 @@ eccentricity error), the one-orbit position error is
     err = 6π · ρ² / r
 
 to six significant figures across 400/800/1500 km altitudes and 1 km/10 km separations.
-Empirical; an analytic derivation is an open item. Consequences: with a 2 m budget (1 % of a
+Originally measured, subsequently derived — see `docs/cw_validity.md`. The chaser's induced
+semi-major-axis excess is `Δa = 2ρ²/r`, and the classical `−3π·Δa` secular drift per
+revolution reproduces the coefficient `6π` exactly. The coefficient is structural. Consequences: with a 2 m budget (1 % of a
 200 m keep-out sphere) CW holds to ≈850 m separation over one orbit; the MVP baseline hop
 incurs ≈1.5 m; far-range work at 10 km incurs 277 m and requires Lambert instead.
 

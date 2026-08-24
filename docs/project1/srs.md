@@ -44,7 +44,7 @@ figures, not the requirements of any real programme.
 | F-2.4 | SHALL perform differential correction on a nonlinear trajectory | Terminal miss reduced below tolerance; non-convergence raises | **[OPEN]** |
 | F-2.5 | SHALL support multiple manoeuvre opportunities | A ≥3-burn sequence plans and executes end to end | **[OPEN]** |
 | F-2.6 | SHALL model finite burns | Finite-burn result converges to the impulsive result as thrust → ∞ | **[OPEN]** |
-| F-2.7 | SHALL optimise Δv against time of flight | A Pareto front is produced and archived | **[OPEN]** |
+| F-2.7 | SHALL optimise Δv against time of flight | Optimiser agrees with a 4000-point brute-force sweep to 2.1e-7 relative; Pareto front produced (archiving still open) | **[PART]** |
 
 ### 2.3 Mission phases
 | ID | Requirement | Status |
@@ -86,10 +86,10 @@ figures, not the requirements of any real programme.
 ### 2.7 Baselines and reporting
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-7.1 | SHALL implement a Hohmann/phasing baseline | **[OPEN]** |
-| F-7.2 | SHALL implement a Lambert-based rendezvous baseline | **[OPEN]** |
-| F-7.3 | SHALL produce an optimised trajectory | **[OPEN]** |
-| F-7.4 | SHALL compare all three in one table on identical scenarios | **[OPEN]** |
+| F-7.1 | SHALL implement a Hohmann/phasing baseline | **[MET]** |
+| F-7.2 | SHALL implement a Lambert-based rendezvous baseline | **[MET]** |
+| F-7.3 | SHALL produce an optimised trajectory | **[MET]** |
+| F-7.4 | SHALL compare all three in one table on identical scenarios | **[MET]** |
 | F-7.5 | SHALL NOT claim superiority without that quantitative comparison | **[MET]** (policy) |
 
 ## 3. Non-functional requirements

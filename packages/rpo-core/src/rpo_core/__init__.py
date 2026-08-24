@@ -11,6 +11,13 @@ Everything else is reached by its module path (``rpo_core.elements``,
 the top-level namespace readable and import cost low.
 """
 
+from .baselines import (
+    BaselineResult,
+    RendezvousProblem,
+    cw_two_impulse_baseline,
+    lambert_baseline,
+    phasing_baseline,
+)
 from .constants import (
     J2_EARTH,
     MU_EARTH_M3_S2,
@@ -37,6 +44,13 @@ from .montecarlo import (
     VectorNormalDispersion,
     run_campaign,
     wilson_interval,
+)
+from .optimize import (
+    BaselineComparison,
+    compare_baselines,
+    delta_v_vs_tof,
+    minimise_delta_v,
+    pareto_front,
 )
 from .perturbations import (
     j2_acceleration_m_s2,
@@ -65,6 +79,8 @@ __all__ = [
     "J2_EARTH",
     "MU_EARTH_M3_S2",
     "R_EARTH_EQUATORIAL_M",
+    "BaselineComparison",
+    "BaselineResult",
     "CampaignResults",
     "ClassicalElements",
     "CorrectedTransfer",
@@ -75,6 +91,7 @@ __all__ = [
     "MagnitudePointingDispersion",
     "NormalDispersion",
     "PropagationError",
+    "RendezvousProblem",
     "RpoCoreError",
     "SingularTransferTimeError",
     "TargetingConvergenceError",
@@ -85,14 +102,21 @@ __all__ = [
     "cartesian_to_classical",
     "check_cw_validity",
     "classical_to_cartesian",
+    "compare_baselines",
     "compute_metrics",
     "conservative_cw_error_bound_m",
     "correct_two_impulse_transfer",
     "cw_stm",
+    "cw_two_impulse_baseline",
+    "delta_v_vs_tof",
     "hill_basis",
     "j2_acceleration_m_s2",
+    "lambert_baseline",
     "mean_motion_rad_s",
+    "minimise_delta_v",
     "orbital_period_s",
+    "pareto_front",
+    "phasing_baseline",
     "propagate_cw",
     "propagate_perturbed",
     "propagate_relative_nonlinear",

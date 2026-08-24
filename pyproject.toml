@@ -3,7 +3,7 @@ name = "rpo-suite"
 version = "0.1.0"
 description = "Rendezvous and proximity operations: trajectory design, safe RL, and payload inspection planning."
 requires-python = ">=3.11,<3.13"
-dependencies = ["rpo-core"]
+dependencies = ["rpo-core", "rpo-traj"]
 
 [project.optional-dependencies]
 # Plotting is needed by scripts/ and the study artefacts, never by the numerics core.
@@ -18,6 +18,7 @@ members = ["packages/*"]
 
 [tool.uv.sources]
 rpo-core = { workspace = true }
+rpo-traj = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -47,7 +48,7 @@ allowed-confusables = ["ρ", "μ", "°", "τ", "Φ", "Δ"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["packages/rpo-core/src"]
+files = ["packages/rpo-core/src", "packages/rpo-traj/src"]
 
 [tool.pytest.ini_options]
 testpaths = ["packages"]
