@@ -1,0 +1,149 @@
+%% ====================================================================================
+%% rpo-suite — V-bar baseline reference propagation for external validation
+%%
+%%  *** UNVERIFIED. THIS SCRIPT HAS NEVER BEEN EXECUTED. ***
+%%
+%% It was written on a machine with no GMAT installation (macOS arm64), from the
+%% documented GMAT scripting language. Nobody has run it, no output has been inspected,
+%% and no number anywhere in this repository depends on it. Treat every line as a
+%% proposal. Expect to correct resource names, parameter spellings, or the report
+%% cadence on first run against your GMAT version; optional_stk/gmat/runbook.md says
+%% where to look when it fails.
+%%
+%% Purpose: produce a point-mass two-body ephemeris of the SRS §1.3 reference target
+%% (ISS-like, 420 km circular, 51.6 deg inclination) over 24 hours at 30 s spacing, so
+%% that rpo_core.validation can compare it against rpo_core.propagate.propagate_two_body.
+%%
+%% 30 s and not 60 s, for a measured reason. The harness interpolates this file onto the
+%% Python ephemeris's epochs with 8-point Lagrange, whose error is O(h^8): measured
+%% 3.9e-5 m at 60 s spacing and 1.5e-7 m at 30 s. The difference being reported is of
+%% order 1e-4 m, so a 60 s export would leave the interpolation error within a factor of
+%% two of the signal, while 30 s puts it three decades below.
+%%
+%% The force model is deliberately as bare as GMAT allows. This comparison is meant to
+%% isolate integrator and frame differences; leaving J2 enabled would swamp both by
+%% roughly three orders of magnitude (hundreds of km of along-track over a day) and the
+%% result would say nothing about either.
+%% ====================================================================================
+
+%----------------------------------------
+%---------- Central body
+%----------------------------------------
+
+% Match this repository's mu exactly (rpo_core.constants.MU_EARTH_M3_S2, WGS-84
+% 3.986004418e14 m^3/s^2 = 398600.4418 km^3/s^2). GMAT's built-in Earth mu is
+% 398600.4415, a 7.5e-10 relative difference. That looks negligible and is not: through
+% n = sqrt(mu/a^3) it produces about 0.25 m of along-track drift per day at this
+% altitude, which is the same order as the difference this comparison is trying to
+% measure. If your GMAT build rejects this assignment, leave it out and subtract the
+% predicted 0.25 m/day from the along-track result rather than ignoring it.
+GMAT Earth.Mu = 398600.4418;
+
+%----------------------------------------
+%---------- Spacecraft
+%----------------------------------------
+
+Create Spacecraft Target;
+GMAT Target.DateFormat = TAIGregorian;
+GMAT Target.Epoch = '01 Mar 2026 00:00:00.000';
+GMAT Target.CoordinateSystem = EarthMJ2000Eq;
+GMAT Target.DisplayStateType = Cartesian;
+
+% SRS §1.3 baseline: a = 6798137 m, i = 51.6 deg, circular, at the ascending-node
+% crossing on the +X axis. v = sqrt(mu/a) = 7.6572697 km/s, split by inclination.
+% Regenerate these from the repository rather than retyping them if you change the
+% scenario; a hand-typed state is the easiest way to manufacture a fake disagreement.
+GMAT Target.X  = 6798.137;
+GMAT Target.Y  = 0.0;
+GMAT Target.Z  = 0.0;
+GMAT Target.VX = 0.0;
+GMAT Target.VY = 4.756292;
+GMAT Target.VZ = 6.000952;
+
+% Drag and SRP are switched off in the force model below, so these are inert. They are
+% set anyway: a non-finite or zero value here has been known to abort propagation with a
+% message that points at the integrator rather than at the spacecraft.
+GMAT Target.DryMass = 1000;
+GMAT Target.Cd = 2.2;
+GMAT Target.Cr = 1.8;
+GMAT Target.DragArea = 10;
+GMAT Target.SRPArea = 10;
+
+%----------------------------------------
+%---------- Force model: point mass, nothing else
+%----------------------------------------
+
+Create ForceModel TwoBodyOnly;
+GMAT TwoBodyOnly.CentralBody = Earth;
+GMAT TwoBodyOnly.PrimaryBodies = {Earth};
+GMAT TwoBodyOnly.PointMasses = {};
+GMAT TwoBodyOnly.Drag = None;
+GMAT TwoBodyOnly.SRP = Off;
+GMAT TwoBodyOnly.RelativisticCorrection = Off;
+GMAT TwoBodyOnly.ErrorControl = RSSStep;
+
+% Degree 0 / order 0 reduces the gravity field to the point-mass term. VERIFY THIS in
+% the run log: if your GMAT version silently falls back to a non-zero default, every
+% number downstream is a J2 comparison wearing a two-body label. The log line naming the
+% degree and order actually used is the thing to read.
+GMAT TwoBodyOnly.GravityField.Earth.Degree = 0;
+GMAT TwoBodyOnly.GravityField.Earth.Order = 0;
+GMAT TwoBodyOnly.GravityField.Earth.PotentialFile = 'JGM2.cof';
+GMAT TwoBodyOnly.GravityField.Earth.EarthTideModel = 'None';
+
+%----------------------------------------
+%---------- Propagator
+%----------------------------------------
+
+Create Propagator RefProp;
+GMAT RefProp.FM = TwoBodyOnly;
+GMAT RefProp.Type = PrinceDormand78;
+GMAT RefProp.InitialStepSize = 30;
+GMAT RefProp.Accuracy = 1e-13;
+GMAT RefProp.MinStep = 0;
+GMAT RefProp.MaxStep = 30;
+GMAT RefProp.MaxStepAttempts = 50;
+GMAT RefProp.StopIfAccuracyIsViolated = true;
+
+%----------------------------------------
+%---------- Report
+%----------------------------------------
+
+% ReportFile rather than EphemerisFile: the output is plain text with one row per
+% propagation stop, which converts to the rpo-ephemeris contract with the snippet in the
+% runbook. An EphemerisFile (CCSDS OEM) also works but needs its own parser.
+%
+% Precision 16 is not decoration. At LEO radius, 16 significant figures in kilometres is
+% about a nanometre; drop to the default and the export quantises at the centimetre
+% level, which is above the difference this comparison is trying to resolve.
+Create ReportFile EphemReport;
+GMAT EphemReport.Filename = 'vbar_baseline_gmat.txt';
+GMAT EphemReport.Precision = 16;
+GMAT EphemReport.WriteHeaders = true;
+GMAT EphemReport.LeftJustify = On;
+GMAT EphemReport.ZeroFill = Off;
+GMAT EphemReport.FixedWidth = true;
+GMAT EphemReport.ColumnWidth = 26;
+GMAT EphemReport.WriteReport = true;
+GMAT EphemReport.Add = {Target.TAIModJulian, Target.EarthMJ2000Eq.X, ...
+                        Target.EarthMJ2000Eq.Y, Target.EarthMJ2000Eq.Z, ...
+                        Target.EarthMJ2000Eq.VX, Target.EarthMJ2000Eq.VY, ...
+                        Target.EarthMJ2000Eq.VZ};
+
+Create Variable step;
+
+%----------------------------------------
+%---------- Mission sequence
+%----------------------------------------
+
+BeginMissionSequence;
+
+% 2880 steps of 30 s = 86400 s = 24 h, giving 2881 report rows including the epoch.
+%
+% Written as an explicit loop rather than a single Propagate with MaxStep = 30, because
+% a single Propagate reports at *integration* steps: if the integrator takes a step
+% shorter than 30 s anywhere, the export becomes non-uniform and read_ephemeris rejects
+% it as gapped. The loop pins the report cadence to the stopping condition instead.
+For step = 1:1:2880;
+   Propagate RefProp(Target) {Target.ElapsedSecs = 30};
+EndFor;

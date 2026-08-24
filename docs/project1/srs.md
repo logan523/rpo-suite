@@ -32,7 +32,7 @@ figures, not the requirements of any real programme.
 | F-1.4 | SHALL quantify CW linearisation error against F-1.3 | Measured law `6π·ρ²/r`, reproducible to 6 s.f. across 3 altitudes | **[MET]** |
 | F-1.5 | SHALL warn when a scenario exceeds the measured CW envelope | Warning fires above tolerance, silent for the baseline scenario | **[MET]** |
 | F-1.6 | SHALL model J2 secular perturbation | RAAN drift within 1 % of `−(3/2)·n·J2·(Rₑ/p)²·cos i` | **[OPEN]** |
-| F-1.7 | SHOULD model atmospheric drag | Decay rate within an order of magnitude of published ISS reboost cadence | **[OPEN]** |
+| F-1.7 | SHOULD model atmospheric drag | Decay rate within an order of magnitude of published ISS reboost cadence | **[MET]** |
 | F-1.8 | SHALL expose integrator tolerances as configuration | Tolerance appears in `IntegratorConfig`, never as a module constant | **[MET]** |
 
 ### 2.2 Targeting and manoeuvre design
@@ -43,7 +43,7 @@ figures, not the requirements of any real programme.
 | F-2.3 | SHALL solve Lambert's problem | Propagating the returned `v1` for the TOF arrives at `r2`; **measured worst 7.09e-4 m** across 20 cases, integrator-limited | **[MET]** |
 | F-2.4 | SHALL perform differential correction on a nonlinear trajectory | Terminal miss reduced below tolerance; non-convergence raises | **[OPEN]** |
 | F-2.5 | SHALL support multiple manoeuvre opportunities | A ≥3-burn sequence plans and executes end to end | **[OPEN]** |
-| F-2.6 | SHALL model finite burns | Finite-burn result converges to the impulsive result as thrust → ∞ | **[OPEN]** |
+| F-2.6 | SHALL model finite burns | Finite-burn result converges to the impulsive result as thrust → ∞ | **[MET]** |
 | F-2.7 | SHALL optimise Δv against time of flight | Optimiser agrees with a 4000-point brute-force sweep to 2.1e-7 relative; Pareto front produced (archiving still open) | **[PART]** |
 
 ### 2.3 Mission phases
@@ -68,11 +68,11 @@ figures, not the requirements of any real programme.
 ### 2.5 Uncertainty
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-5.1 | SHALL model burn execution error (magnitude and pointing) | **[OPEN]** |
-| F-5.2 | SHALL model navigation error (position, velocity, bias) | **[OPEN]** |
-| F-5.3 | SHALL run seeded Monte Carlo campaigns | **[OPEN]** |
-| F-5.4 | SHALL report success rate with a confidence interval | **[OPEN]** |
-| F-5.5 | SHALL report sensitivity to burn and navigation error | **[OPEN]** |
+| F-5.1 | SHALL model burn execution error (magnitude and pointing) | **[MET]** |
+| F-5.2 | SHALL model navigation error (position, velocity, bias) | **[MET]** |
+| F-5.3 | SHALL run seeded Monte Carlo campaigns | **[MET]** |
+| F-5.4 | SHALL report success rate with a confidence interval | **[MET]** |
+| F-5.5 | SHALL report sensitivity to burn and navigation error | **[MET]** |
 
 ### 2.6 Validation against external tools
 | ID | Requirement | Status |
@@ -81,7 +81,7 @@ figures, not the requirements of any real programme.
 | F-6.2 | SHALL represent the plan as an Astrogator Mission Control Sequence | **[OPEN]** |
 | F-6.3 | SHALL export Python-generated manoeuvre states to STK | **[OPEN]** |
 | F-6.4 | SHALL report the Python-vs-STK position difference in metres with a stated cause | **[OPEN]** |
-| F-6.5 | SHALL provide a licence-free validation path (GMAT) | **[OPEN]** |
+| F-6.5 | SHALL provide a licence-free validation path (GMAT) | **[PART]** — harness + script written and tested against an analytic Kepler oracle; GMAT itself never executed (not installed) |
 
 ### 2.7 Baselines and reporting
 | ID | Requirement | Status |
@@ -105,7 +105,7 @@ figures, not the requirements of any real programme.
 | N-7 | Numerical routines raise typed errors rather than returning wrong values | Every raise path tested | **[MET]** |
 | N-8 | No global RNG state; every stochastic entry point takes a `Generator` | Code review + test | **[MET]** |
 | N-9 | Tests assert closed-form/limiting-case results, not stored self-output | Code review | **[MET]** |
-| N-10 | Every quoted numerical result survives a tolerance sweep | Convergence test per propagator | **[PART]** |
+| N-10 | Every quoted numerical result survives a tolerance sweep | Convergence test per propagator | **[MET]** |
 
 ## 4. Required metrics (the results table)
 

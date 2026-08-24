@@ -310,8 +310,8 @@ def target_state_eci(
 
     .. math::
 
-        oldsymbol{r} = (a, 0, 0), \qquad
-        oldsymbol{v} = \sqrt{\mu/a}\,(0, \cos i, \sin i).
+        \boldsymbol{r} = (a, 0, 0), \qquad
+        \boldsymbol{v} = \sqrt{\mu/a}\,(0, \cos i, \sin i).
 
     The right ascension and argument of latitude are both taken as zero. In a spherical
     gravity field that is not an approximation but a choice of coordinates: relative motion

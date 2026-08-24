@@ -141,7 +141,8 @@ def propagate_two_body(
         Initial state ``[r(3), v(3)]`` in metres and metres per second, shape (6,).
     times_s
         Output times, seconds, relative to the epoch of ``state0_eci``. Must be
-        non-decreasing and begin at 0.0.
+        **strictly increasing** and begin at 0.0. A single-element schedule is allowed and
+        returns the initial state unchanged.
     mu_m3_s2
         Gravitational parameter, m^3/s^2.
     rtol, atol
@@ -175,8 +176,20 @@ def propagate_two_body(
         raise ValueError("times_s must be finite")
     if times[0] != 0.0:
         raise ValueError(f"times_s must start at 0.0, got {times[0]!r}")
-    if np.any(np.diff(times) < 0.0):
-        raise ValueError("times_s must be non-decreasing")
+    # Strictly increasing, not merely non-decreasing. An earlier version validated
+    # `diff >= 0` while `solve_ivp` requires strict monotonicity, so a repeated output time
+    # escaped this check and surfaced as scipy's own "Values in `t_eval` are not properly
+    # sorted" -- an error naming neither the offending argument nor the offending value --
+    # and `[0.0, 0.0]` crashed with an AttributeError about a list having no shape. Leaking
+    # a library's internal message for an input this module is supposed to validate is
+    # exactly what docs/CONTRIBUTING.md forbids.
+    steps = np.diff(times)
+    if np.any(steps <= 0.0):
+        bad = int(np.argmax(steps <= 0.0))
+        raise ValueError(
+            f"times_s must be strictly increasing, but times_s[{bad}] = {times[bad]!r} is "
+            f"followed by times_s[{bad + 1}] = {times[bad + 1]!r}"
+        )
 
     if times.size == 1:
         return state0.reshape(1, 6).copy()

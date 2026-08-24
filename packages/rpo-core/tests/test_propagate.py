@@ -150,7 +150,11 @@ def test_single_output_time_returns_the_initial_state_unchanged():
     ("times", "match"),
     [
         (np.array([10.0, 20.0]), "must start at 0.0"),
-        (np.array([0.0, 20.0, 10.0]), "non-decreasing"),
+        (np.array([0.0, 20.0, 10.0]), "strictly increasing"),
+        # Repeated times previously escaped validation and surfaced as scipy's own
+        # "Values in `t_eval` are not properly sorted", or an AttributeError.
+        (np.array([0.0, 100.0, 100.0, 200.0]), "strictly increasing"),
+        (np.array([0.0, 0.0]), "strictly increasing"),
         (np.array([]), "non-empty"),
         (np.array([0.0, np.nan]), "finite"),
     ],
