@@ -1,0 +1,59 @@
+[project]
+name = "rpo-suite"
+version = "0.1.0"
+description = "Rendezvous and proximity operations: trajectory design, safe RL, and payload inspection planning."
+requires-python = ">=3.11,<3.13"
+dependencies = ["rpo-core"]
+
+[project.optional-dependencies]
+# Plotting is needed by scripts/ and the study artefacts, never by the numerics core.
+# Keeping it out of rpo-core means a headless Monte Carlo run pulls no GUI stack.
+viz = ["matplotlib>=3.9"]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+rpo-core = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "scipy-stubs>=1.14",
+    "types-pyyaml>=6.0.12.20260815",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "D", "NPY", "RUF"]
+ignore = ["D203", "D213"]
+
+# Physics notation: these are the standard symbols in relative-motion literature
+# (rho = separation, mu = grav. parameter, degree sign), not lookalike typos.
+allowed-confusables = ["ρ", "μ", "°", "τ", "Φ", "Δ"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/*" = ["D103", "D100"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["packages/rpo-core/src"]
+
+[tool.pytest.ini_options]
+testpaths = ["packages"]
+markers = [
+    "unit: fast isolated tests",
+    "integration: multi-module tests",
+    "slow: long-running (excluded from the fast CI job)",
+    "validation: compares against an external oracle (STK/GMAT)",
+]

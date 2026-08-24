@@ -1,0 +1,78 @@
+# V-bar baseline -- the MVP rendezvous scenario for this suite.
+#
+# A half-period V-bar hop: the chaser sits 1000 m behind the target on the along-track
+# axis, and transfers to 250 m behind it in half an orbital period. In-plane only, so the
+# half-period time of flight is well posed (cross-track targeting would not be -- see the
+# validators in rpo_core.config and SingularTransferTimeError in relative/cw.py).
+#
+# ---------------------------------------------------------------------------------------
+# WHERE THESE NUMBERS COME FROM -- READ THIS BEFORE QUOTING ANY OF THEM
+#
+# The orbit and the stand-off geometry are ISS-*like*: a 420 km circular orbit at 51.6 deg
+# inclination, a 200 m keep-out sphere, and a 4 x 2 x 2 km approach ellipsoid with the long
+# axis along the velocity vector. These are publicly documented, order-of-magnitude
+# representative values, chosen so the scenario is physically sensible and recognisable.
+#
+# They are NOT flight requirements. They are not the actual ISS visiting-vehicle approach
+# rules, they carry no authority, and nothing derived from this file should be used to plan
+# a real approach. See DISCLAIMER.md.
+# ---------------------------------------------------------------------------------------
+#
+# Units: SI (metres, seconds), except angles, which are degrees. This file is the I/O
+# boundary; the conversion to radians happens on the way in and never inside the numerics.
+# Hill-frame vectors are ordered [x, y, z] = radial-outward (R-bar), along-track (V-bar),
+# positive orbit normal. A chaser trailing the target has negative y -- hence the signs
+# below. See docs/conventions.md.
+
+name: vbar_baseline
+description: >-
+  Half-period V-bar hop from 1000 m to 250 m behind an ISS-like target. In-plane only:
+  the manoeuvre does not change cross-track position, which is what makes a half-period
+  time of flight solvable.
+
+orbit:
+  altitude_m: 420000.0
+  inclination_deg: 51.6
+
+start_hold_point:
+  name: vbar_minus_1000
+  position_hill_m: [0.0, -1000.0, 0.0]
+
+target_hold_point:
+  name: vbar_minus_250
+  position_hill_m: [0.0, -250.0, 0.0]
+
+constraints:
+  keep_out_sphere_radius_m: 200.0
+
+  # Semi-axes in Hill order [x, y, z]. The 4 km semi-axis is along-track, not radial:
+  # the approach happens along V-bar, so that is the axis the corridor is stretched down.
+  # Writing it [4000, 2000, 2000] would put a 4 km radial corridor around a 2 km
+  # along-track one, which is the wrong shape for this approach.
+  approach_ellipsoid_semi_axes_m: [2000.0, 4000.0, 2000.0]
+
+  approach_cone_half_angle_deg: 10.0
+  # Enforced across the whole hop. At 1000 m a 10 deg half-angle allows ~176 m of lateral
+  # excursion and at 250 m about 44 m, against the ~40 m radial bulge a half-period hop of
+  # this size actually makes -- tight, but not violated. Worth re-checking against the
+  # propagated trajectory rather than trusting this note.
+  approach_cone_activation_range_m: 1000.0
+
+  max_closing_velocity_m_s: 0.1
+  # Deliberately gated at the arrival hold point, not at the start. The hop covers 750 m in
+  # ~46 min, a mean closing rate near 0.27 m/s, so a 0.1 m/s ceiling applied from 1000 m
+  # would forbid the baseline manoeuvre outright.
+  max_closing_velocity_activation_range_m: 250.0
+
+maneuver:
+  # Either tof_s or tof_periods, never both. 0.5 periods is ~2786 s here.
+  tof_periods: 0.5
+
+integrator:
+  # docs/conventions.md fixes these as the reference tolerances. They live here, not in a
+  # module constant, so that a result can be swept against them.
+  method: DOP853
+  rtol: 1.0e-12
+  atol: 1.0e-12
+
+seed: 42
