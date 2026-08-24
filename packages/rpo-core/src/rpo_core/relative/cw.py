@@ -59,6 +59,15 @@ from ..exceptions import InfeasibleTransferError, SingularTransferTimeError
 #: garbage, **not** a general accuracy envelope. Transfer times close to ``k*T`` are
 #: numerically fine here; the limit only trips within ~3e-8 of an exact period multiple.
 #: See ``test_condition_number_grows_slowly_near_the_singularity``.
+#:
+#: **This value is specific to the in-plane 2x2 block. Do not apply it to a full 3x3
+#: position Jacobian.** Measured at exactly half a period, a nonlinear 3x3 shooting
+#: Jacobian has condition number 6.1e7 -- comfortably *below* this limit -- while its
+#: cross-track entry is structurally rank-deficient (ratio to the in-plane block norm:
+#: 1.6e-8). A 3x3 guard set here accepts that Jacobian and the resulting Newton step asks
+#: for a **317.9 km/s** cross-track impulse to achieve a 50 m position change. In-plane and
+#: cross-track must be conditioned separately, exactly as :func:`two_impulse_transfer` does
+#: and as ``rpo_core.targeting`` does for the nonlinear problem.
 SINGULARITY_CONDITION_LIMIT: float = 1.0e8
 
 #: ``|sin(n*dt)|`` below which the cross-track solve is treated as rank-deficient.

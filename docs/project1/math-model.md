@@ -101,6 +101,23 @@ period, starting and ending at rest, collapses to two equal purely-radial impuls
 
     |Δv₁| = |Δv₂| = n·Δy/4       total Δv = n·Δy/2
 
+**Corollary — the radial bulge, and why it constrains mission design.** That departure
+impulse is purely radial, and from the CW solution a radial impulse produces a radial
+excursion peaking at `|Δv_x|/n`. Substituting:
+
+    peak radial excursion = Δy/4
+
+The transfer arc therefore bulges off the V-bar by a quarter of the hop length, *independent
+of orbit altitude and of transfer time*. Measured for the baseline 750 m hop: 187.5 m, exactly
+Δy/4, reaching **20.56° off the V-bar against a 10° approach corridor**.
+
+This is a hard geometric limit, not a tuning problem. A single two-impulse half-period hop
+cannot respect a tight approach corridor for any Δy where `Δy/4` is a significant fraction of
+the standoff distance. Respecting a 10° corridor requires either a sequence of shorter hops,
+a different transfer time, or a forced-motion (continuous-thrust) approach — which is why
+real proximity operations use staged hops rather than one large transfer, and why Phase B's
+multi-burn optimisation exists.
+
 ---
 
 ## M5 — Nonlinear relative motion  *(implemented)*
@@ -124,13 +141,37 @@ incurs ≈1.5 m; far-range work at 10 km incurs 277 m and requires Lambert inste
 
 ## M6 — J2 secular perturbation  *(open)*
 
-    a_J2 = −(3/2) J₂ (μ/r²) (Rₑ/r)² [ (1 − 5(z/r)²) x̂ᵢ + (1 − 5(z/r)²) ŷᵢ + (3 − 5(z/r)²) ẑᵢ ]
+    k    = −(3/2) J₂ (μ/r²) (Rₑ/r)²
+    a_x  = k (1 − 5(z/r)²) (x/r)
+    a_y  = k (1 − 5(z/r)²) (y/r)
+    a_z  = k (3 − 5(z/r)²) (z/r)
 
-**Independent check.** Secular RAAN drift must match
+An earlier revision of this document omitted the `x/r`, `y/r`, `z/r` direction cosines,
+which as written made the acceleration a constant vector independent of in-plane position.
+Verified as exactly `−∇V_J2` by central differences to 9.8e-10.
+
+**Independent check 1 — secular RAAN drift.**
 
     Ω̇ = −(3/2) n J₂ (Rₑ/p)² cos i
 
-to within 1 %. This is the single most valuable physics-validation test in the project.
+**Measured: 0.1285 % agreement** over 20 orbits at 700 km, e = 0.01, i = 51.6°. The residual
+is physics, not numerics: unchanged to 8 significant figures across rtol 1e-9 → 1e-12, and it
+scales with the omitted second-order term (0.1401/0.1285/0.1039/0.0735 % at 400/700/1500/3000
+km, a constant ~1.46× the value of `J₂(Rₑ/p)²`).
+
+**Independent check 2 — argument-of-perigee drift.**
+
+    ω̇ = (3/4) n J₂ (Rₑ/p)² (5cos²i − 1)
+
+Note `− 1`, not `− 3`. An earlier revision of this document and of the task brief had `− 3`,
+which is wrong: the zero of this rate is the critical inclination, and only `− 1` yields the
+published Molniya value of **63.4349°** (`−3` gives 39.23°, which corresponds to nothing).
+At i = 45° the two forms differ in sign as well as magnitude.
+
+**Independent check 3 — sun-synchronous inclination.** The inclination at which nodal
+regression equals Earth's orbital rate (360°/365.25 d). **Measured: 98.6029° at 800 km**
+(0.0138 % on the resulting drift rate) and **97.7875° at 600 km** (0.0131 %). Note these are
+altitude-specific; the often-quoted "≈97.8°" is the 600 km value, not 800 km.
 
 ---
 
@@ -156,9 +197,34 @@ converge to the impulsive result. Convergence rate is itself the test.
 
 ## M9 — Uncertainty  *(open)*
 
-Burn execution error: magnitude `1 + δ`, `δ ~ N(0, σ_mag²)`; pointing error as a small
-rotation with per-axis `N(0, σ_point²)`. Navigation error: additive `N(0, P)` on the
-estimated relative state plus a constant bias per run.
+Burn execution error: magnitude scale `1 + δ`, `δ ~ N(0, σ_mag²)`, applied independently of
+direction.
+
+**Pointing error — normative definition.** `θ ~ N(0, σ_point²)` is the rotation angle about an
+axis drawn uniformly **in the plane perpendicular to Δv**. The realised half-cone angle is then
+exactly `|θ|`, half-normal distributed, so `σ_point` is the standard deviation of an
+observable quantity.
+
+An earlier revision specified instead "a rotation vector with per-axis `N(0, σ_point²)`". Both
+are well-posed and both appear in the literature, but **they are not interchangeable**:
+
+| Convention | Half-cone angle distribution | Mean for σ = 0.02 rad |
+|---|---|---|
+| Perpendicular-axis rotation (**normative here**) | half-normal, scale σ | 0.01597 rad = σ·√(2/π) |
+| Per-axis rotation vector | Rayleigh, scale σ | 0.02505 rad = σ·√(π/2) |
+
+Measured over 400 000 samples; both reproduce their closed forms to 4 significant figures. The
+same σ therefore means something **1.568× larger** under the per-axis convention. A reader who
+assumes the wrong one mis-sizes every dispersion study by that factor, so the convention is
+stated here rather than left to the implementation.
+
+Note also that a *uniform-on-the-sphere* axis would be wrong for either: rotating by θ about an
+axis at angle φ from Δv turns the impulse by only `cos α = cos²φ + sin²φ·cos θ`, so the
+component of the axis parallel to Δv does nothing and σ ceases to be the scale of anything
+observable.
+
+Navigation error: additive `N(0, P)` on the estimated relative state plus a constant bias per
+run.
 
 Linear covariance propagation: `P⁺ = Φ P Φᵀ + Q`.
 

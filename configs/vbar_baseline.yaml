@@ -56,13 +56,28 @@ constraints:
   # excursion and at 250 m about 44 m, against the ~40 m radial bulge a half-period hop of
   # this size actually makes -- tight, but not violated. Worth re-checking against the
   # propagated trajectory rather than trusting this note.
+  # KNOWN AND INTENTIONAL: the baseline manoeuvre VIOLATES this corridor, and shipping it
+  # that way is the point. A half-period two-impulse V-bar hop bulges radially by exactly
+  # dy/4 (docs/project1/math-model.md, model M4 corollary) - here 187.5 m, reaching
+  # 20.56 deg off the V-bar, 151 of 241 samples outside a 10 deg corridor.
+  #
+  # That is a hard geometric consequence of the transfer, not a tuning error, so it is not
+  # papered over by widening the cone or activating it closer in. The MVP's job is to REPORT
+  # the violation; Phase B multi-burn optimisation is what fixes it. A baseline that fails a
+  # constraint honestly is a legitimate baseline.
   approach_cone_activation_range_m: 1000.0
 
   max_closing_velocity_m_s: 0.1
-  # Deliberately gated at the arrival hold point, not at the start. The hop covers 750 m in
-  # ~46 min, a mean closing rate near 0.27 m/s, so a 0.1 m/s ceiling applied from 1000 m
-  # would forbid the baseline manoeuvre outright.
-  max_closing_velocity_activation_range_m: 250.0
+  # Gated near the arrival hold point, not at the start: the hop covers 750 m in ~46 min at
+  # a mean closing rate near 0.27 m/s, so a 0.1 m/s ceiling applied from 1000 m would forbid
+  # the baseline manoeuvre outright.
+  #
+  # But the range must sit STRICTLY OUTSIDE the arrival hold radius. At 250.0 m it exactly
+  # equalled it, and the arc's minimum range is 250.0000000000 m, so ZERO samples ever fell
+  # inside the activation region: the constraint reported "not violated" while never once
+  # being evaluated. A vacuously satisfied constraint is worse than an absent one, because
+  # it appears in the report as a pass. 300 m puts the final approach genuinely inside.
+  max_closing_velocity_activation_range_m: 300.0
 
 maneuver:
   # Either tof_s or tof_periods, never both. 0.5 periods is ~2786 s here.
