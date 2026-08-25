@@ -27,6 +27,7 @@ from rpo_core.elements import (
     ClassicalElements,
     NonClosedOrbitError,
     UndefinedOrbitalElementError,
+    _wrap_two_pi,
     argument_of_latitude_rad,
     cartesian_to_classical,
     classical_to_cartesian,
@@ -953,3 +954,37 @@ def test_state_functions_accept_a_plain_list():
     from_list = cartesian_to_classical(list(state), MU)
     from_array = cartesian_to_classical(state, MU)
     assert from_list == from_array
+
+
+# --------------------------------------------------------------------------------------
+# Angle wrapping — coverage hole found by mutation testing
+# --------------------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("angle_rad", [-1e-17, -1e-18, -1e-20, -2.2e-16, -4e-16])
+def test_tiny_negative_angles_wrap_to_zero_not_to_two_pi(angle_rad):
+    """Wrapped angles must land in the half-open interval [0, 2*pi), never on 2*pi.
+
+    Found by mutation testing: deleting the upper guard in `_wrap_two_pi` left all 383
+    element tests passing. It is not dead code. For any angle with magnitude below about
+    half an ulp of 2*pi -- which `atan2` produces routinely near zero, and which therefore
+    reaches this function as a near-zero true anomaly, RAAN or argument of periapsis --
+    adding 2*pi to the tiny negative `fmod` result rounds to exactly 2*pi.
+
+    A caller that bins, compares or asserts on `0 <= angle < 2*pi` then sees a value
+    outside the range it was promised.
+    """
+    wrapped = _wrap_two_pi(angle_rad)
+    assert wrapped == 0.0
+    assert 0.0 <= wrapped < 2.0 * math.pi
+
+
+@pytest.mark.unit
+def test_wrapping_is_idempotent_and_stays_in_range_across_many_revolutions():
+    """Complement: the guard must not break ordinary angles."""
+    rng = np.random.default_rng(20260825)
+    for angle in rng.uniform(-40.0 * math.pi, 40.0 * math.pi, 5000):
+        wrapped = _wrap_two_pi(float(angle))
+        assert 0.0 <= wrapped < 2.0 * math.pi
+        assert _wrap_two_pi(wrapped) == wrapped

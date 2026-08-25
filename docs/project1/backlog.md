@@ -135,3 +135,10 @@ recalled rather than read from the source. The physics is independently verified
 a physical copy and remove the warning block, or drop the reference and keep the case as an
 unattributed fixture. Publishing an incorrect textbook citation in a portfolio repository
 costs more credibility than the test is worth.
+
+**X7 · Consolidate duplicated private validators.** 30 distinct helpers across 14 modules,
+26 shape-check call sites, with `_as_vec3` written three times and `_vec3`, `_as_state6`,
+`_validate_times`, `_validate_trajectory`, `_validate_seed`, `_validate_positive` each written
+twice. An artefact of parallel construction with shared files off-limits. Consolidate into
+`rpo_core._validate`. Mechanical, touches 14 files, gate on the full suite. Do it before
+`rpo-rl` and `rpo-inspect` add more.
