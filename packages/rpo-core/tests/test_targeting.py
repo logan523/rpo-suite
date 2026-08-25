@@ -726,3 +726,22 @@ def test_a_guess_that_already_arrives_needs_no_iterations():
     assert again.iterations == 0
     assert len(again.residual_history_m) == 1
     assert again.dv1_hill_m_s.tobytes() == converged.dv1_hill_m_s.tobytes()
+
+
+@pytest.mark.integration
+def test_a_stalled_correction_names_the_transfer_time_it_stalled_on():
+    """Every refusal must say WHICH transfer time it refused.
+
+    Found by CI: `IllConditionedJacobianError` named the offending time in orbital periods
+    but `TargetingConvergenceError` did not, so the diagnostic a caller needs depended on
+    which guard happened to trip first -- and which one trips is a property of the LAPACK
+    backend. docs/CONTRIBUTING.md requires error messages to carry the numbers that
+    motivated them, so a user can act without reaching for a debugger.
+    """
+    r0, rf = _hop(1_000.0)
+    with pytest.raises(TargetingConvergenceError) as excinfo:
+        # A tolerance below the nonlinear oracle's own noise floor cannot be delivered.
+        _correct(r0, rf, tof_s=0.5 * PERIOD_S, tolerance_m=1.0e-15)
+    message = str(excinfo.value)
+    assert "0.500000" in message, message
+    assert "orbital periods" in message, message

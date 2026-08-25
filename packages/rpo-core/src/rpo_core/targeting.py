@@ -571,7 +571,9 @@ def correct_two_impulse_transfer(
                 fraction *= 0.5
             if not accepted:
                 raise TargetingConvergenceError(
-                    "differential correction stalled: no damped Newton step down to "
+                    "differential correction stalled at "
+                    f"tof_s={tof:.6g} s (= {tof * mean_motion / (2.0 * math.pi):.6f} "
+                    "orbital periods): no damped Newton step down to "
                     f"{MIN_LINE_SEARCH_FRACTION:.3e} of full length reduced the terminal "
                     f"position miss below its current {residual_norm:.6g} m, after "
                     f"{iteration} iterations against a tolerance of {tolerance:.6g} m. "
