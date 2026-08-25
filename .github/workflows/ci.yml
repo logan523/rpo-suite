@@ -20,7 +20,9 @@ jobs:
           enable-cache: true
 
       - name: Sync dependencies
-        run: uv sync --locked --python ${{ matrix.python-version }}
+        # --extra viz is required: without it the plotting tests skip and that layer
+        # goes untested, which is how a gate quietly stops gating.
+        run: uv sync --locked --extra viz --python ${{ matrix.python-version }}
 
       - name: Lint
         run: uv run ruff check .
@@ -32,4 +34,9 @@ jobs:
         run: uv run mypy
 
       - name: Tests
-        run: uv run pytest -q -m "not slow" --cov=rpo_core --cov-report=term-missing
+        run: uv run pytest -q -m "not slow" --cov=rpo_core --cov=rpo_traj --cov-report=term-missing
+
+      - name: Assert no tests were silently skipped
+        # A skipped plotting suite looks identical to a passing one in the summary
+        # line. Fail loudly instead.
+        run: uv run pytest -q -m "not slow" -W error::pytest.PytestUnraisableExceptionWarning --no-header -rs 2>&1 | tee /tmp/out.txt && ! grep -q "skipped" /tmp/out.txt

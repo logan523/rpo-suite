@@ -19,9 +19,14 @@ top of it.
 ## Quickstart
 
 ```bash
-uv sync
+uv sync --extra viz
 uv run pytest -q
 ```
+
+`--extra viz` installs matplotlib, which only the plotting layer needs. Plain `uv sync` also
+works — the plotting tests then skip rather than run, and everything else is unaffected. The
+numerics core deliberately never imports matplotlib, so a headless Monte Carlo campaign pulls
+no plotting stack.
 
 No STK, no GMAT, no network access required. That is deliberate: the optional validation
 layer confirms results, it never produces them.

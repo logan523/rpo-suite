@@ -15,6 +15,15 @@ Every test is marked ``integration``: they run the whole config -> constraints -
 figure chain, and they need the ``viz`` extra (``uv run --extra viz pytest``).
 """
 
+import pytest
+
+# matplotlib lives in the optional `viz` extra so a headless Monte Carlo run pulls no
+# plotting stack. Without this guard a module-scope import of pyplot raises during
+# COLLECTION, which pytest treats as fatal: the entire suite aborts and zero tests run.
+# On a clean clone that turned the documented `uv sync && uv run pytest -q` quickstart into
+# a stack trace. Skipping is the correct degradation for a missing optional dependency.
+pytest.importorskip("matplotlib", reason="plotting tests require the 'viz' extra")
+
 import dataclasses
 import json
 import math
