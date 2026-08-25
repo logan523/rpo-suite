@@ -46,7 +46,10 @@ allowed-confusables = ["ρ", "μ", "°", "τ", "Φ", "Δ"]
 "**/tests/*" = ["D103", "D100"]
 
 [tool.mypy]
-python_version = "3.11"
+# Deliberately NOT pinned. CI runs a 3.11/3.12 matrix; a hardcoded python_version type-checks
+# 3.12 environments as though they were 3.11, and numpy's own stubs then fail to parse
+# ("Type statement is only supported in Python 3.12 and greater"). Let mypy follow the
+# interpreter it is running under.
 strict = true
 files = ["packages/rpo-core/src", "packages/rpo-traj/src"]
 

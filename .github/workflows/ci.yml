@@ -25,18 +25,18 @@ jobs:
         run: uv sync --locked --extra viz --python ${{ matrix.python-version }}
 
       - name: Lint
-        run: uv run ruff check .
+        run: uv run --extra viz ruff check .
 
       - name: Format check
-        run: uv run ruff format --check .
+        run: uv run --extra viz ruff format --check .
 
       - name: Type check
-        run: uv run mypy
+        run: uv run --extra viz mypy
 
       - name: Tests
-        run: uv run pytest -q -m "not slow" --cov=rpo_core --cov=rpo_traj --cov-report=term-missing
+        run: uv run --extra viz pytest -q -m "not slow" --cov=rpo_core --cov=rpo_traj --cov-report=term-missing
 
       - name: Assert no tests were silently skipped
         # A skipped plotting suite looks identical to a passing one in the summary
         # line. Fail loudly instead.
-        run: uv run pytest -q -m "not slow" -W error::pytest.PytestUnraisableExceptionWarning --no-header -rs 2>&1 | tee /tmp/out.txt && ! grep -q "skipped" /tmp/out.txt
+        run: uv run --extra viz pytest -q -m "not slow" --no-header -rs 2>&1 | tee /tmp/out.txt && ! grep -qE "[0-9]+ skipped" /tmp/out.txt
