@@ -1,0 +1,73 @@
+{
+  "scenario": {
+    "altitude_m": 420000.0,
+    "orbit_radius_m": 6798137.0,
+    "inclination_deg": 51.6,
+    "mean_motion_rad_s": 0.0011263776361937724,
+    "orbital_period_s": 5578.222707272112,
+    "target_eccentricity": 0.0
+  },
+  "error_law": {
+    "form": "err_one_orbit_m = C * separation_m**2 / orbit_radius_m",
+    "coefficient_C": 18.84955592153876,
+    "coefficient_over_pi": 6.0,
+    "status": "measured, not derived"
+  },
+  "max_position_error_m": {
+    "10": {
+      "0.25_orbits": 3.595382124517301e-05,
+      "0.5_orbits": 0.0001456221488899407,
+      "1_orbits": 0.00027733246161557235,
+      "2_orbits": 0.0005546205624683196
+    },
+    "100": {
+      "0.25_orbits": 0.003348777104775872,
+      "0.5_orbits": 0.014549408200512393,
+      "1_orbits": 0.027727598869854597,
+      "2_orbits": 0.0554551523159371
+    },
+    "1000": {
+      "0.25_orbits": 0.3348654453392085,
+      "0.5_orbits": 1.4549169358403304,
+      "1_orbits": 2.7727532522802787,
+      "2_orbits": 5.545506487128397
+    },
+    "5000": {
+      "0.25_orbits": 8.37163047807215,
+      "0.5_orbits": 36.37289476507752,
+      "1_orbits": 69.3189277820218,
+      "2_orbits": 138.63785556563548
+    },
+    "10000": {
+      "0.25_orbits": 33.486450645450276,
+      "0.5_orbits": 145.49122694856365,
+      "1_orbits": 277.27689198183754,
+      "2_orbits": 554.5537839823897
+    },
+    "50000": {
+      "0.25_orbits": 837.1038455499472,
+      "0.5_orbits": 3636.9981619779096,
+      "1_orbits": 6932.867062096861,
+      "2_orbits": 13865.732321326344
+    },
+    "100000": {
+      "0.25_orbits": 3347.697914756687,
+      "0.5_orbits": 14544.460191773143,
+      "1_orbits": 27743.268490501254,
+      "2_orbits": 55486.42141731243
+    }
+  },
+  "usable_envelope": {
+    "error_budget_m": 5.0,
+    "budget_basis": "2.5% of a 200 m keep-out sphere",
+    "safety_factor": 1.5,
+    "bound_basis": "conservative bound, not central estimate",
+    "max_separation_m_at_one_orbit": 1096.437213770081
+  },
+  "provenance": {
+    "git_sha": "4e7839d7d7a4362d18cad3cf4737a67e5742d300",
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "integrator": "DOP853, rtol=atol=1e-12"
+  }
+}

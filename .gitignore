@@ -10,4 +10,8 @@ dist/
 build/
 *.egg-info/
 results/
+!results/cw_validity/
+!results/cw_validity/**
+!results/baseline_comparison.txt
+!results/headline.json
 .DS_Store

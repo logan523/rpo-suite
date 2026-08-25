@@ -1,0 +1,39 @@
+Rendezvous baseline comparison -- one problem, 4 methods, identical scoring
+  Target      : r = 6,798,137 m, T = 5,578.2 s, n = 1.126378e-03 rad/s
+  Chaser      : [0.0, -10,000.0, 0.0] m  ->  [0.0, -2,500.0, 0.0] m  (Hill frame)
+  Separation  : 10,000.0 m; commanded TOF for fixed-time methods 2,231.3 s (0.400 orbits)
+  Scoring     : terminal errors measured under nonlinear two-body dynamics for every method
+
+Method                       Burns     Total dv          TOF        TOF    Term. pos    Term. vel     Min sep     Model
+                                          (m/s)          (s)   (orbits)      err (m)    err (m/s)         (m)   premise
+-----------------------------------------------------------------------------------------------------------------------
+Hohmann phasing                  4     0.275042     22,311.9      4.000    2.252e+01    4.971e-02     2,496.8     VALID
+Lambert direct                   2     6.176503      2,231.3      0.400    4.451e-06    4.338e-09     2,500.0     VALID
+CW two-impulse                   2     6.168171      2,231.3      0.400    7.339e+01    6.975e-02     2,564.8   INVALID
+CW + nonlinear correction        2     6.176503      2,231.3      0.400    2.520e-04    5.158e-13     2,500.0   INVALID
+-----------------------------------------------------------------------------------------------------------------------
+Model premise, judged against a 5 m position-error budget:
+  [VALID] Hohmann phasing:
+      coplanar, at-rest endpoints on a near-circular chaser orbit (e = 3.25e-06); the Hohmann
+      closed form applies
+  [VALID] Lambert direct:
+      universal-variable Lambert is exact for two-body motion: no linearisation, so no separation
+      envelope. For scale, CW's bound on this scenario is 166.4 m
+  [INVALID] CW two-impulse:
+      conservative CW linearisation bound 166.4 m over 0.400 orbits at 10,000 m separation EXCEEDS
+      the 5 m budget (33.3x) -- CW is outside its measured envelope here; use Lambert or a
+      nonlinear correction
+  [INVALID] CW + nonlinear correction:
+      conservative CW linearisation bound 166.4 m over 0.400 orbits at 10,000 m separation EXCEEDS
+      the 5 m budget (33.3x) -- CW is outside its measured envelope here; use Lambert or a
+      nonlinear correction. The differential correction re-aims the departure impulse onto
+      nonlinear dynamics, so the arrival is not governed by this bound -- but the seed still is,
+      and the flag reports the seed's model
+
+Model premise is not accuracy. It says whether each method's own assumptions hold
+here; the terminal-error columns say how close it got. A method can be VALID and
+still miss by metres, or INVALID and still be a usable first guess.
+
+There is deliberately no "best" column. Ranking these rows by delta-v alone would
+recommend a method that is outside its own envelope, which is the failure mode this
+table exists to prevent.

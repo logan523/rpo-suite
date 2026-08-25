@@ -1,0 +1,50 @@
+{
+  "git_sha": "4e7839d",
+  "cw_error_law": {
+    "1000": {
+      "measured_one_orbit_m": 2.7727532522802787,
+      "predicted_6pi_rho2_over_r_m": 2.772753170690552,
+      "delta_a_measured_m": 0.2941982615739107,
+      "delta_a_predicted_2rho2_over_r_m": 0.2941982487260848,
+      "three_pi_delta_a_m": 2.7727532917784585
+    },
+    "5000": {
+      "measured_one_orbit_m": 69.3189277820218,
+      "predicted_6pi_rho2_over_r_m": 69.31882926726381,
+      "delta_a_measured_m": 7.354962684214115,
+      "delta_a_predicted_2rho2_over_r_m": 7.35495621815212,
+      "three_pi_delta_a_m": 69.31889020846239
+    },
+    "10000": {
+      "measured_one_orbit_m": 277.27689198183754,
+      "predicted_6pi_rho2_over_r_m": 277.27531706905523,
+      "delta_a_measured_m": 29.419928319752216,
+      "delta_a_predicted_2rho2_over_r_m": 29.41982487260848,
+      "three_pi_delta_a_m": 277.2762920354156
+    }
+  },
+  "targeting": {
+    "100": {
+      "raw_cw_miss_m": 0.012252711365073067,
+      "corrected_miss_m": 1.414792619276922e-08,
+      "improvement_x": 866042.9237562204
+    },
+    "1000": {
+      "raw_cw_miss_m": 1.2252712804420978,
+      "corrected_miss_m": 5.521457205513744e-07,
+      "improvement_x": 2219108.533918434
+    },
+    "10000": {
+      "raw_cw_miss_m": 122.53878830902653,
+      "corrected_miss_m": 0.0007478626061898661,
+      "improvement_x": 163852.00609684794
+    }
+  },
+  "propagator_vs_kepler": {
+    "span_s": 86400.0,
+    "span_orbits": 15.488804326038057,
+    "max_position_diff_m": 8.425300623093391e-05,
+    "rms_position_diff_m": 6.511167683915487e-05
+  },
+  "cw_bound_at_10km_0p4_orbits_m": 166.36519024143314
+}
