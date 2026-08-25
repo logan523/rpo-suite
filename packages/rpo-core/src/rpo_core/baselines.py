@@ -112,6 +112,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy.optimize import brentq
 
+from ._validate import as_vector
 from .constants import MU_EARTH_M3_S2
 from .constraints import separation_m
 from .elements import eccentricity_vector
@@ -269,16 +270,6 @@ class Validity(Enum):
         return self.name
 
 
-def _vec3(value: npt.ArrayLike, name: str) -> npt.NDArray[np.float64]:
-    """Return ``value`` as a validated finite shape-(3,) float64 array."""
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (3,):
-        raise ValueError(f"{name} must have shape (3,), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must be finite, got {array!r}")
-    return array
-
-
 def _positive_float(value: float, name: str) -> float:
     """Return ``value`` as a validated finite strictly-positive float."""
     number = float(value)
@@ -406,7 +397,7 @@ class RendezvousProblem:
             "rf_hill_m",
             "vf_hill_m_s",
         ):
-            object.__setattr__(self, name, _vec3(getattr(self, name), name))
+            object.__setattr__(self, name, as_vector(getattr(self, name), name))
         object.__setattr__(self, "tof_s", _positive_float(self.tof_s, "tof_s"))
         object.__setattr__(self, "mu_m3_s2", _positive_float(self.mu_m3_s2, "mu_m3_s2"))
         if float(np.linalg.norm(self.r_target0_eci_m)) <= 0.0:
@@ -624,7 +615,7 @@ def _fly_impulse_schedule(
             chaser_samples[mask] = leg[1:]
             state = leg[-1]
             t_ref = epoch
-        impulse = _vec3(rule(state), "impulse")
+        impulse = as_vector(rule(state), "impulse")
         state = np.concatenate((state[:3], state[3:] + impulse))
         magnitudes.append(float(np.linalg.norm(impulse)))
     if tof_s > t_ref:

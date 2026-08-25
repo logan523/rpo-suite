@@ -167,6 +167,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy.integrate import solve_ivp
 
+from ._validate import as_vector, validate_positive
 from .constants import MU_EARTH_M3_S2
 from .exceptions import PropagationError, RpoCoreError
 from .frames import hill_basis
@@ -230,24 +231,6 @@ class PropellantExhaustedError(RpoCoreError, ValueError):
 # --------------------------------------------------------------------------------------
 
 
-def _as_vec3(value: npt.ArrayLike, name: str) -> npt.NDArray[np.float64]:
-    """Coerce to a finite float64 vector of shape (3,), rejecting anything else."""
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (3,):
-        raise ValueError(f"{name} must have shape (3,), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must be finite, got {array!r}")
-    return array
-
-
-def _validate_positive(value: float, name: str) -> float:
-    """Return ``value`` as a validated finite, strictly positive float."""
-    number = float(value)
-    if not math.isfinite(number) or number <= 0.0:
-        raise ValueError(f"{name} must be finite and > 0, got {value!r}")
-    return number
-
-
 def _validate_non_negative(value: float, name: str) -> float:
     """Return ``value`` as a validated finite, non-negative float."""
     number = float(value)
@@ -300,9 +283,9 @@ def equivalent_impulsive_delta_v(
     10.813162
 
     """
-    m0 = _validate_positive(initial_mass_kg, "initial_mass_kg")
-    mf = _validate_positive(final_mass_kg, "final_mass_kg")
-    isp = _validate_positive(specific_impulse_s, "specific_impulse_s")
+    m0 = validate_positive(initial_mass_kg, "initial_mass_kg")
+    mf = validate_positive(final_mass_kg, "final_mass_kg")
+    isp = validate_positive(specific_impulse_s, "specific_impulse_s")
     if mf > m0:
         raise ValueError(
             f"final_mass_kg = {mf!r} kg exceeds initial_mass_kg = {m0!r} kg; a burn cannot "
@@ -417,18 +400,18 @@ class FiniteBurn:
     def __post_init__(self) -> None:
         """Coerce and validate every field; see the class docstring for the raise paths."""
         set_field = object.__setattr__
-        set_field(self, "thrust_n", _validate_positive(self.thrust_n, "thrust_n"))
+        set_field(self, "thrust_n", validate_positive(self.thrust_n, "thrust_n"))
         set_field(
             self,
             "specific_impulse_s",
-            _validate_positive(self.specific_impulse_s, "specific_impulse_s"),
+            validate_positive(self.specific_impulse_s, "specific_impulse_s"),
         )
         set_field(
-            self, "initial_mass_kg", _validate_positive(self.initial_mass_kg, "initial_mass_kg")
+            self, "initial_mass_kg", validate_positive(self.initial_mass_kg, "initial_mass_kg")
         )
         set_field(self, "start_time_s", _validate_non_negative(self.start_time_s, "start_time_s"))
 
-        direction = _as_vec3(self.direction_unit, "direction_unit")
+        direction = as_vector(self.direction_unit, "direction_unit")
         norm = float(np.linalg.norm(direction))
         if norm == 0.0:
             raise ValueError(
@@ -450,12 +433,12 @@ class FiniteBurn:
                 "by Tsiolkovsky, so supplying both admits a pair that disagree"
             )
         if self.duration_s is not None:
-            set_field(self, "duration_s", _validate_positive(self.duration_s, "duration_s"))
+            set_field(self, "duration_s", validate_positive(self.duration_s, "duration_s"))
         if self.commanded_delta_v_m_s is not None:
             set_field(
                 self,
                 "commanded_delta_v_m_s",
-                _validate_positive(self.commanded_delta_v_m_s, "commanded_delta_v_m_s"),
+                validate_positive(self.commanded_delta_v_m_s, "commanded_delta_v_m_s"),
             )
 
         propellant = self.mass_flow_rate_kg_s * self.burn_duration_s

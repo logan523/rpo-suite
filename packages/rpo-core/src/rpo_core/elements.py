@@ -99,6 +99,7 @@ from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 
+from ._validate import as_state6
 from .constants import MU_EARTH_M3_S2
 from .exceptions import DegenerateGeometryError, RpoCoreError
 
@@ -300,16 +301,6 @@ def _angle_about_axis(
     return _wrap_two_pi(math.atan2(perpendicular, parallel))
 
 
-def _as_state6(value: npt.ArrayLike, name: str) -> npt.NDArray[np.float64]:
-    """Coerce ``value`` to a finite float64 inertial state of shape (6,)."""
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (6,):
-        raise ValueError(f"{name} must have shape (6,), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must be finite, got {array!r}")
-    return array
-
-
 def _validate_mu(mu_m3_s2: float, name: str = "mu_m3_s2") -> float:
     """Return ``mu_m3_s2`` as a validated finite positive float."""
     mu = float(mu_m3_s2)
@@ -333,7 +324,7 @@ def _orbit_vectors(
     finiteness, positive ``mu``, zero radius, zero angular momentum, non-closed orbit -- are
     enforced identically no matter which element is being asked for.
     """
-    state = _as_state6(state_eci, name)
+    state = as_state6(state_eci, name)
     mu = _validate_mu(mu_m3_s2)
 
     r = state[:3]

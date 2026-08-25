@@ -95,6 +95,7 @@ from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 
+from ._validate import as_vector
 from .constants import MU_EARTH_M3_S2
 from .exceptions import InfeasibleTransferError, RpoCoreError
 from .propagate import DEFAULT_ATOL, DEFAULT_RTOL
@@ -280,16 +281,6 @@ class CorrectedTransfer:
         return float(np.linalg.norm(self.dv1_hill_m_s - self.cw_dv1_hill_m_s))
 
 
-def _vec3(value: npt.ArrayLike, name: str) -> npt.NDArray[np.float64]:
-    """Return ``value`` as a validated finite shape-(3,) float64 array."""
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (3,):
-        raise ValueError(f"{name} must have shape (3,), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must be finite, got {array!r}")
-    return array
-
-
 def _positive_float(value: float, name: str) -> float:
     """Return ``value`` as a validated finite strictly-positive float."""
     number = float(value)
@@ -427,12 +418,12 @@ def correct_two_impulse_transfer(
     True
 
     """
-    r_t0 = _vec3(r_target0_eci_m, "r_target0_eci_m")
-    v_t0 = _vec3(v_target0_eci_m_s, "v_target0_eci_m_s")
-    r0 = _vec3(r0_hill_m, "r0_hill_m")
-    v0 = _vec3(v0_hill_m_s, "v0_hill_m_s")
-    rf = _vec3(rf_hill_m, "rf_hill_m")
-    vf = _vec3(vf_hill_m_s, "vf_hill_m_s")
+    r_t0 = as_vector(r_target0_eci_m, "r_target0_eci_m")
+    v_t0 = as_vector(v_target0_eci_m_s, "v_target0_eci_m_s")
+    r0 = as_vector(r0_hill_m, "r0_hill_m")
+    v0 = as_vector(v0_hill_m_s, "v0_hill_m_s")
+    rf = as_vector(rf_hill_m, "rf_hill_m")
+    vf = as_vector(vf_hill_m_s, "vf_hill_m_s")
 
     tof = _positive_float(tof_s, "tof_s")
     mu = _positive_float(mu_m3_s2, "mu_m3_s2")
@@ -460,7 +451,7 @@ def correct_two_impulse_transfer(
         cw_dv1, cw_dv2 = two_impulse_transfer(mean_motion, r0, v0, rf, vf, tof)
         dv1 = cw_dv1.copy()
     else:
-        dv1 = _vec3(dv1_guess_m_s, "dv1_guess_m_s").copy()
+        dv1 = as_vector(dv1_guess_m_s, "dv1_guess_m_s").copy()
         try:
             cw_dv1, cw_dv2 = two_impulse_transfer(mean_motion, r0, v0, rf, vf, tof)
         except RpoCoreError:
@@ -663,12 +654,12 @@ def raw_cw_terminal_miss_m(
         On malformed or non-finite input.
 
     """
-    r_t0 = _vec3(r_target0_eci_m, "r_target0_eci_m")
-    v_t0 = _vec3(v_target0_eci_m_s, "v_target0_eci_m_s")
-    r0 = _vec3(r0_hill_m, "r0_hill_m")
-    v0 = _vec3(v0_hill_m_s, "v0_hill_m_s")
-    rf = _vec3(rf_hill_m, "rf_hill_m")
-    vf = _vec3(vf_hill_m_s, "vf_hill_m_s")
+    r_t0 = as_vector(r_target0_eci_m, "r_target0_eci_m")
+    v_t0 = as_vector(v_target0_eci_m_s, "v_target0_eci_m_s")
+    r0 = as_vector(r0_hill_m, "r0_hill_m")
+    v0 = as_vector(v0_hill_m_s, "v0_hill_m_s")
+    rf = as_vector(rf_hill_m, "rf_hill_m")
+    vf = as_vector(vf_hill_m_s, "vf_hill_m_s")
     tof = _positive_float(tof_s, "tof_s")
     mu = _positive_float(mu_m3_s2, "mu_m3_s2")
 

@@ -136,9 +136,20 @@ a physical copy and remove the warning block, or drop the reference and keep the
 unattributed fixture. Publishing an incorrect textbook citation in a portfolio repository
 costs more credibility than the test is worth.
 
-**X7 · Consolidate duplicated private validators.** 30 distinct helpers across 14 modules,
+**X7 · Consolidate duplicated private validators. — DONE (partial, deliberately).** 30 distinct helpers across 14 modules,
 26 shape-check call sites, with `_as_vec3` written three times and `_vec3`, `_as_state6`,
 `_validate_times`, `_validate_trajectory`, `_validate_seed`, `_validate_positive` each written
-twice. An artefact of parallel construction with shared files off-limits. Consolidate into
-`rpo_core._validate`. Mechanical, touches 14 files, gate on the full suite. Do it before
-`rpo-rl` and `rpo-inspect` add more.
+twice. An artefact of parallel construction with shared files off-limits. Consolidated into `rpo_core._validate` (190 lines, 6 functions); 10 implementations removed
+across 8 modules.
+
+**The item as logged was wrong about the cause.** Only 3 of 7 families were true duplicates.
+The other 4 diverge because each module raises its OWN typed error
+(`ConstraintDefinitionError`, `GuidanceDefinitionError`, `MetricsError`,
+`CampaignConfigurationError`) so callers can catch precisely. Naive consolidation would have
+flattened that taxonomy and broken every `pytest.raises` naming a specific type. The shared
+helpers therefore take an `error_type` parameter: shared logic, preserved contracts.
+
+Deliberately NOT consolidated: `_validate_trajectory` (metrics vs constraints),
+`_validate_seed` (montecarlo vs plan), `_validate_times` (navigation). Each encodes
+module-specific semantics beyond the shared shape checks. Consolidating them would trade real
+duplication for a helper with too many flags.

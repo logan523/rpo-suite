@@ -35,6 +35,7 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 
+from ._validate import as_vector
 from .exceptions import DegenerateGeometryError
 
 Vec3 = npt.NDArray[np.float64]
@@ -42,16 +43,6 @@ Mat3 = npt.NDArray[np.float64]
 
 #: Relative tolerance below which a cross product is treated as degenerate.
 _DEGENERATE_REL_TOL: float = 1e-12
-
-
-def _as_vec3(value: npt.ArrayLike, name: str) -> Vec3:
-    """Coerce ``value`` to a finite float64 array of shape (3,)."""
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (3,):
-        raise ValueError(f"{name} must have shape (3,), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must be finite, got {array!r}")
-    return array
 
 
 def hill_basis(r_eci_m: npt.ArrayLike, v_eci_m_s: npt.ArrayLike) -> tuple[Mat3, Vec3]:
@@ -86,8 +77,8 @@ def hill_basis(r_eci_m: npt.ArrayLike, v_eci_m_s: npt.ArrayLike) -> tuple[Mat3, 
     if Hill components are wanted.
 
     """
-    r = _as_vec3(r_eci_m, "r_eci_m")
-    v = _as_vec3(v_eci_m_s, "v_eci_m_s")
+    r = as_vector(r_eci_m, "r_eci_m")
+    v = as_vector(v_eci_m_s, "v_eci_m_s")
 
     r_norm = float(np.linalg.norm(r))
     v_norm = float(np.linalg.norm(v))
@@ -136,10 +127,10 @@ def relative_state_eci_to_hill(
         Shape (6,): ``[x, y, z, xdot, ydot, zdot]`` in metres and metres per second.
 
     """
-    r_t = _as_vec3(r_target_eci_m, "r_target_eci_m")
-    v_t = _as_vec3(v_target_eci_m_s, "v_target_eci_m_s")
-    r_c = _as_vec3(r_chaser_eci_m, "r_chaser_eci_m")
-    v_c = _as_vec3(v_chaser_eci_m_s, "v_chaser_eci_m_s")
+    r_t = as_vector(r_target_eci_m, "r_target_eci_m")
+    v_t = as_vector(v_target_eci_m_s, "v_target_eci_m_s")
+    r_c = as_vector(r_chaser_eci_m, "r_chaser_eci_m")
+    v_c = as_vector(v_chaser_eci_m_s, "v_chaser_eci_m_s")
 
     rotation, omega_eci = hill_basis(r_t, v_t)
     dr_eci = r_c - r_t
@@ -167,8 +158,8 @@ def relative_state_hill_to_eci(
     if state.shape != (6,):
         raise ValueError(f"relative_state_hill must have shape (6,), got {state.shape}")
 
-    r_t = _as_vec3(r_target_eci_m, "r_target_eci_m")
-    v_t = _as_vec3(v_target_eci_m_s, "v_target_eci_m_s")
+    r_t = as_vector(r_target_eci_m, "r_target_eci_m")
+    v_t = as_vector(v_target_eci_m_s, "v_target_eci_m_s")
     rotation, omega_eci = hill_basis(r_t, v_t)
 
     dr_eci = rotation.T @ state[:3]

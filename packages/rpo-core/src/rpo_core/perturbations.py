@@ -128,6 +128,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy.integrate import solve_ivp
 
+from ._validate import as_vector, validate_positive
 from .constants import J2_EARTH, MU_EARTH_M3_S2, R_EARTH_EQUATORIAL_M
 from .exceptions import DegenerateGeometryError, PropagationError, RpoCoreError
 from .propagate import DEFAULT_ATOL, DEFAULT_RTOL, two_body_derivative
@@ -204,24 +205,6 @@ class AtmosphericModelError(RpoCoreError, ValueError):
     worse, extrapolating the surface band downwards -- would let a propagation continue
     happily underground and deliver a decay profile for a vehicle that has already impacted.
     """
-
-
-def _as_vec3(value: npt.ArrayLike, name: str) -> npt.NDArray[np.float64]:
-    """Coerce to a finite float64 vector of shape (3,), rejecting anything else."""
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (3,):
-        raise ValueError(f"{name} must have shape (3,), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must be finite, got {array!r}")
-    return array
-
-
-def _validate_positive(value: float, name: str) -> float:
-    """Return ``value`` as a validated finite, strictly positive float."""
-    number = float(value)
-    if not math.isfinite(number) or number <= 0.0:
-        raise ValueError(f"{name} must be finite and > 0, got {value!r}")
-    return number
 
 
 def _validate_finite(value: float, name: str) -> float:
@@ -313,9 +296,9 @@ def j2_acceleration_m_s2(
     (True, True)
 
     """
-    r = _as_vec3(r_eci_m, "r_eci_m")
-    mu = _validate_positive(mu_m3_s2, "mu_m3_s2")
-    radius = _validate_positive(r_body_m, "r_body_m")
+    r = as_vector(r_eci_m, "r_eci_m")
+    mu = validate_positive(mu_m3_s2, "mu_m3_s2")
+    radius = validate_positive(r_body_m, "r_body_m")
     coefficient = _validate_finite(j2, "j2")
     if float(np.linalg.norm(r)) == 0.0:
         raise DegenerateGeometryError(
@@ -348,9 +331,9 @@ def j2_potential_j_kg(
         On malformed, non-finite, or non-positive input.
 
     """
-    r = _as_vec3(r_eci_m, "r_eci_m")
-    mu = _validate_positive(mu_m3_s2, "mu_m3_s2")
-    radius = _validate_positive(r_body_m, "r_body_m")
+    r = as_vector(r_eci_m, "r_eci_m")
+    mu = validate_positive(mu_m3_s2, "mu_m3_s2")
+    radius = validate_positive(r_body_m, "r_body_m")
     coefficient = _validate_finite(j2, "j2")
     r_norm = float(np.linalg.norm(r))
     if r_norm == 0.0:
@@ -394,7 +377,7 @@ def specific_energy_with_j2_j_kg(
         raise ValueError(f"state_eci must have shape (6,), got {state.shape}")
     if not np.all(np.isfinite(state)):
         raise ValueError(f"state_eci must be finite, got {state!r}")
-    mu = _validate_positive(mu_m3_s2, "mu_m3_s2")
+    mu = validate_positive(mu_m3_s2, "mu_m3_s2")
     r_norm = float(np.linalg.norm(state[:3]))
     if r_norm == 0.0:
         raise DegenerateGeometryError("specific energy is undefined at |r| = 0")
@@ -410,7 +393,7 @@ def specific_energy_with_j2_j_kg(
 
 def _semi_latus_rectum_m(semi_major_axis_m: float, eccentricity: float) -> float:
     """Return ``p = a(1 - e**2)`` with the closed-orbit preconditions enforced."""
-    a = _validate_positive(semi_major_axis_m, "semi_major_axis_m")
+    a = validate_positive(semi_major_axis_m, "semi_major_axis_m")
     e = _validate_finite(eccentricity, "eccentricity")
     if not 0.0 <= e < 1.0:
         raise ValueError(f"eccentricity must be in [0, 1) for a closed orbit, got {e!r}")
@@ -445,8 +428,8 @@ def secular_raan_rate_rad_s(
 
     """
     p = _semi_latus_rectum_m(semi_major_axis_m, eccentricity)
-    mu = _validate_positive(mu_m3_s2, "mu_m3_s2")
-    radius = _validate_positive(r_body_m, "r_body_m")
+    mu = validate_positive(mu_m3_s2, "mu_m3_s2")
+    radius = validate_positive(r_body_m, "r_body_m")
     coefficient = _validate_finite(j2, "j2")
     inclination = _validate_finite(inclination_rad, "inclination_rad")
     n = math.sqrt(mu / float(semi_major_axis_m) ** 3)
@@ -481,8 +464,8 @@ def secular_arg_periapsis_rate_rad_s(
 
     """
     p = _semi_latus_rectum_m(semi_major_axis_m, eccentricity)
-    mu = _validate_positive(mu_m3_s2, "mu_m3_s2")
-    radius = _validate_positive(r_body_m, "r_body_m")
+    mu = validate_positive(mu_m3_s2, "mu_m3_s2")
+    radius = validate_positive(r_body_m, "r_body_m")
     coefficient = _validate_finite(j2, "j2")
     inclination = _validate_finite(inclination_rad, "inclination_rad")
     n = math.sqrt(mu / float(semi_major_axis_m) ** 3)
@@ -696,9 +679,9 @@ def drag_acceleration_m_s2(
         make drag a thruster), or non-positive ``r_body_m``.
 
     """
-    r = _as_vec3(r_eci_m, "r_eci_m")
-    v = _as_vec3(v_eci_m_s, "v_eci_m_s")
-    radius = _validate_positive(r_body_m, "r_body_m")
+    r = as_vector(r_eci_m, "r_eci_m")
+    v = as_vector(v_eci_m_s, "v_eci_m_s")
+    radius = validate_positive(r_body_m, "r_body_m")
     omega = _validate_finite(omega_earth_rad_s, "omega_earth_rad_s")
     bc = _validate_finite(ballistic_coefficient_m2_kg, "ballistic_coefficient_m2_kg")
     if bc < 0.0:
@@ -838,8 +821,8 @@ def propagate_perturbed(
     if np.any(np.diff(times) < 0.0):
         raise ValueError("times_s must be non-decreasing")
 
-    mu = _validate_positive(mu_m3_s2, "mu_m3_s2")
-    radius = _validate_positive(r_body_m, "r_body_m")
+    mu = validate_positive(mu_m3_s2, "mu_m3_s2")
+    radius = validate_positive(r_body_m, "r_body_m")
     omega = _validate_finite(omega_earth_rad_s, "omega_earth_rad_s")
 
     j2_arg: float | None = None

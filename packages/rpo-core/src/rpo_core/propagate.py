@@ -34,6 +34,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy.integrate import solve_ivp
 
+from ._validate import as_state6, as_states_n6, validate_time_grid
 from .constants import MU_EARTH_M3_S2
 from .exceptions import PropagationError
 
@@ -56,36 +57,6 @@ def two_body_derivative(
     return np.concatenate((state[3:], -mu_m3_s2 * r / r_norm**3))
 
 
-def _as_state6(state_eci: npt.ArrayLike, name: str = "state_eci") -> npt.NDArray[np.float64]:
-    """Coerce to a finite float64 state of shape (6,), rejecting anything else.
-
-    Deliberately strict about shape. An earlier version indexed with an ellipsis, which
-    advertised batch support that ``numpy.linalg.norm`` did not honour: a stacked (N, 6)
-    input was flattened into a single norm, so three identical LEO states returned
-    +54 MJ/kg instead of -29.3 MJ/kg. The sign flip would have made a bound orbit read as
-    hyperbolic. Use the ``*_batch`` variants for stacked states.
-    """
-    state = np.asarray(state_eci, dtype=np.float64)
-    if state.shape != (6,):
-        raise ValueError(
-            f"{name} must have shape (6,), got {state.shape}; "
-            "use the batch variant for stacked (N, 6) states"
-        )
-    if not np.all(np.isfinite(state)):
-        raise ValueError(f"{name} must be finite, got {state!r}")
-    return state
-
-
-def _as_states_n6(states_eci: npt.ArrayLike) -> npt.NDArray[np.float64]:
-    """Coerce to a finite float64 array of shape (N, 6)."""
-    states = np.asarray(states_eci, dtype=np.float64)
-    if states.ndim != 2 or states.shape[1] != 6:
-        raise ValueError(f"states_eci must have shape (N, 6), got {states.shape}")
-    if not np.all(np.isfinite(states)):
-        raise ValueError("states_eci must be finite")
-    return states
-
-
 def specific_energy_j_kg(state_eci: npt.ArrayLike, mu_m3_s2: float = MU_EARTH_M3_S2) -> float:
     """Return specific orbital energy ``v**2/2 - mu/r``, J/kg. Conserved under two-body.
 
@@ -93,7 +64,7 @@ def specific_energy_j_kg(state_eci: npt.ArrayLike, mu_m3_s2: float = MU_EARTH_M3
     :func:`specific_energy_batch_j_kg` -- passing an (N, 6) array here raises rather than
     silently collapsing it into one wrong number.
     """
-    state = _as_state6(state_eci)
+    state = as_state6(state_eci, "state_eci", batch_hint=True)
     r_norm = float(np.linalg.norm(state[:3]))
     v_norm = float(np.linalg.norm(state[3:]))
     return 0.5 * v_norm**2 - mu_m3_s2 / r_norm
@@ -103,7 +74,7 @@ def specific_energy_batch_j_kg(
     states_eci: npt.ArrayLike, mu_m3_s2: float = MU_EARTH_M3_S2
 ) -> npt.NDArray[np.float64]:
     """Return specific orbital energy for each of N stacked states, shape (N,), J/kg."""
-    states = _as_states_n6(states_eci)
+    states = as_states_n6(states_eci)
     r_norm = np.linalg.norm(states[:, :3], axis=1)
     v_norm = np.linalg.norm(states[:, 3:], axis=1)
     return np.asarray(0.5 * v_norm**2 - mu_m3_s2 / r_norm, dtype=np.float64)
@@ -115,13 +86,13 @@ def specific_angular_momentum(state_eci: npt.ArrayLike) -> npt.NDArray[np.float6
     Accepts a single state of shape (6,); see
     :func:`specific_angular_momentum_batch` for stacked states.
     """
-    state = _as_state6(state_eci)
+    state = as_state6(state_eci, "state_eci", batch_hint=True)
     return np.cross(state[:3], state[3:])
 
 
 def specific_angular_momentum_batch(states_eci: npt.ArrayLike) -> npt.NDArray[np.float64]:
     """Return specific angular momentum for each of N stacked states, shape (N, 3)."""
-    states = _as_states_n6(states_eci)
+    states = as_states_n6(states_eci)
     return np.cross(states[:, :3], states[:, 3:])
 
 
@@ -169,27 +140,7 @@ def propagate_two_body(
     if not np.all(np.isfinite(state0)):
         raise ValueError(f"state0_eci must be finite, got {state0!r}")
 
-    times = np.asarray(times_s, dtype=np.float64)
-    if times.ndim != 1 or times.size == 0:
-        raise ValueError(f"times_s must be a non-empty 1-D array, got shape {times.shape}")
-    if not np.all(np.isfinite(times)):
-        raise ValueError("times_s must be finite")
-    if times[0] != 0.0:
-        raise ValueError(f"times_s must start at 0.0, got {times[0]!r}")
-    # Strictly increasing, not merely non-decreasing. An earlier version validated
-    # `diff >= 0` while `solve_ivp` requires strict monotonicity, so a repeated output time
-    # escaped this check and surfaced as scipy's own "Values in `t_eval` are not properly
-    # sorted" -- an error naming neither the offending argument nor the offending value --
-    # and `[0.0, 0.0]` crashed with an AttributeError about a list having no shape. Leaking
-    # a library's internal message for an input this module is supposed to validate is
-    # exactly what docs/CONTRIBUTING.md forbids.
-    steps = np.diff(times)
-    if np.any(steps <= 0.0):
-        bad = int(np.argmax(steps <= 0.0))
-        raise ValueError(
-            f"times_s must be strictly increasing, but times_s[{bad}] = {times[bad]!r} is "
-            f"followed by times_s[{bad + 1}] = {times[bad + 1]!r}"
-        )
+    times = validate_time_grid(times_s, "times_s", min_size=1)
 
     if times.size == 1:
         return state0.reshape(1, 6).copy()
