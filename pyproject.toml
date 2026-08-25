@@ -8,7 +8,7 @@ dependencies = ["rpo-core", "rpo-traj"]
 [project.optional-dependencies]
 # Plotting is needed by scripts/ and the study artefacts, never by the numerics core.
 # Keeping it out of rpo-core means a headless Monte Carlo run pulls no GUI stack.
-viz = ["matplotlib>=3.9"]
+viz = ["matplotlib>=3.9", "rpo-core[viz]"]
 
 [tool.uv]
 package = false

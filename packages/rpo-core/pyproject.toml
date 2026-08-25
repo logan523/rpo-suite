@@ -5,6 +5,14 @@ description = "Shared astrodynamics core: frames, propagators, relative motion, 
 requires-python = ">=3.11,<3.13"
 dependencies = ["numpy>=2.0", "scipy>=1.14", "pydantic>=2.8", "pyyaml>=6.0"]
 
+# rpo_core.plotting imports matplotlib; nothing else in the package does. The extra must be
+# declared HERE, on the package that contains the code, not only on the workspace root.
+# Declaring it only at the root left rpo-core with no matplotlib dependency at all, and
+# `uv sync --locked --extra viz --python 3.12` in CI produced an environment where mypy
+# could not resolve the import -- a first-run CI failure that no local run reproduced.
+[project.optional-dependencies]
+viz = ["matplotlib>=3.9"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

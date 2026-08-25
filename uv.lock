@@ -724,13 +724,20 @@ dependencies = [
     { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 
+[package.optional-dependencies]
+viz = [
+    { name = "matplotlib" },
+]
+
 [package.metadata]
 requires-dist = [
+    { name = "matplotlib", marker = "extra == 'viz'", specifier = ">=3.9" },
     { name = "numpy", specifier = ">=2.0" },
     { name = "pydantic", specifier = ">=2.8" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "scipy", specifier = ">=1.14" },
 ]
+provides-extras = ["viz"]
 
 [[package]]
 name = "rpo-suite"
@@ -744,6 +751,7 @@ dependencies = [
 [package.optional-dependencies]
 viz = [
     { name = "matplotlib" },
+    { name = "rpo-core", extra = ["viz"] },
 ]
 
 [package.dev-dependencies]
@@ -761,6 +769,7 @@ dev = [
 requires-dist = [
     { name = "matplotlib", marker = "extra == 'viz'", specifier = ">=3.9" },
     { name = "rpo-core", editable = "packages/rpo-core" },
+    { name = "rpo-core", extras = ["viz"], marker = "extra == 'viz'", editable = "packages/rpo-core" },
     { name = "rpo-traj", editable = "packages/rpo-traj" },
 ]
 provides-extras = ["viz"]

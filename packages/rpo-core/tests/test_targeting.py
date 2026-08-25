@@ -552,7 +552,13 @@ def test_whole_period_transfer_time_raises_from_the_shooting_jacobian():
     ) as excinfo:
         _correct(r0, rf, tof_s=PERIOD_S, dv1_guess_m_s=[0.0, 0.0, 0.0])
     assert excinfo.value.condition_number > 1.0e8
-    assert excinfo.value.iteration == 0
+    # NOT `== 0`. The iteration at which the guard trips depends on the LAPACK backend:
+    # macOS/Accelerate reports it on the seed iteration, Linux/OpenBLAS after three damped
+    # steps. Both are correct -- the contract is that the guard fires with a diagnostic
+    # condition number before returning anything, not that it fires on a particular
+    # iteration. Pinning the exact count made the suite pass locally and fail on CI's first
+    # ever run.
+    assert 0 <= excinfo.value.iteration <= 10
 
 
 @pytest.mark.integration
